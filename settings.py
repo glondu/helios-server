@@ -8,11 +8,16 @@ def get_from_env(var, default):
     else:
         return default
 
+# Change your email settings
+DEFAULT_FROM_EMAIL = get_from_env('DEFAULT_FROM_EMAIL', 'ben@adida.net')
+DEFAULT_FROM_NAME = get_from_env('DEFAULT_FROM_NAME', 'Ben for Helios')
+SERVER_EMAIL = '%s <%s>' % (DEFAULT_FROM_NAME, DEFAULT_FROM_EMAIL)
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    ('Ben Adida', 'ben@adida.net'),
+    (DEFAULT_FROM_NAME, DEFAULT_FROM_EMAIL)
 )
 
 MANAGERS = ADMINS
@@ -29,7 +34,7 @@ DATABASES = {
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Los_Angeles'
+TIME_ZONE = 'UTC'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -106,11 +111,6 @@ MEDIA_ROOT = ROOT_PATH + "media/"
 VOTER_UPLOAD_REL_PATH = "voters/%Y/%m/%d"
 
 
-# Change your email settings
-DEFAULT_FROM_EMAIL = get_from_env('DEFAULT_FROM_EMAIL', 'ben@adida.net')
-DEFAULT_FROM_NAME = get_from_env('DEFAULT_FROM_NAME', 'Ben for Helios')
-SERVER_EMAIL = '%s <%s>' % (DEFAULT_FROM_NAME, DEFAULT_FROM_EMAIL)
-
 LOGIN_URL = '/auth/'
 LOGOUT_ON_CONFIRMATION = True
 
@@ -174,7 +174,7 @@ LINKEDIN_API_SECRET = ''
 
 # email server
 EMAIL_HOST = get_from_env('EMAIL_HOST', 'localhost')
-EMAIL_PORT = 2525
+EMAIL_PORT = 25
 EMAIL_HOST_USER = get_from_env('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = get_from_env('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = False
