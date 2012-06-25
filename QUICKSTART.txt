@@ -135,8 +135,9 @@ Dealing with mails
 
 By default, 'exim4' is installed for local mail delivery. Helios is
 set up to use it. Outgoing mails such as those sent by Helios will be
-frozen and kept in the queue. You can inspect them by running some
-commands as root.
+frozen and kept in the queue. You can inspect them by running the
+following commands as root, or as a user that belongs to the group
+'Debian-exim'.
 
 - To see the contents of the queue, run:
 +
