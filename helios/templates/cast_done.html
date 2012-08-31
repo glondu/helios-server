@@ -14,7 +14,9 @@
 </p>
 
 <p>
+{% if socialbuttons_url %}
 <iframe src="{{socialbuttons_url}}" frameborder="0" border="0" style="width: 300px; height:35px;" scrolling="no" align="middle"></iframe>
+{% endif %}
 </p>
 
 {% if logout %}
