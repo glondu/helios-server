@@ -10,6 +10,9 @@ AUTH_SYSTEMS['facebook'] = facebook
 AUTH_SYSTEMS['google'] = google
 AUTH_SYSTEMS['yahoo'] = yahoo
 
+import dummy
+AUTH_SYSTEMS['dummy'] = dummy
+
 # not ready
 #import live
 #AUTH_SYSTEMS['live'] = live

@@ -10,6 +10,8 @@ from views import *
 from auth_systems.password import password_login_view, password_forgotten_view
 from auth_systems.twitter import follow_view
 
+import auth_systems.dummy
+
 urlpatterns = patterns('',
     # basic static stuff
     (r'^$', index),
@@ -25,6 +27,9 @@ urlpatterns = patterns('',
     # password auth
     (r'^password/login', password_login_view),
     (r'^password/forgot', password_forgotten_view),
+
+    # dummy auth
+    (r'^dummy/login', auth_systems.dummy.login_view),
 
     # twitter
     (r'^twitter/follow', follow_view),
