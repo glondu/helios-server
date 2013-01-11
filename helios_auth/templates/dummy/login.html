@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<p>
+<div>
   <form class="prettyform" action="" method="POST" id="login_form">
     <input type="hidden" name="csrf_token" value="{{csrf_token}}" />
     <table>
@@ -16,5 +16,5 @@
       <input type="submit" value="Login" />
     </div>
   </form>
-</p>
+</div>
 {% endblock %}

@@ -53,7 +53,7 @@
 
 {% if elections|length %}
 <h3>Current Featured Elections</h3>
-<p>
+<div>
 {% for election in elections %}
 <div class="highlight-box-margin">
 <a style="font-size: 1.4em;" href="{% url helios.views.election_shortcut election.short_name %}">{{election.name}}</a> by {{election.admin.display_html_small|safe}}<br />
@@ -61,7 +61,7 @@
 </div>
 <br />
 {% endfor %}
-</p>
+</div>
 {% else %}
 <h4>no featured elections at the moment</h4>
 {% endif %}
