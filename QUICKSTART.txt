@@ -98,14 +98,14 @@ now on, we assume that all commands are run as `$HELIOS_USER`.
 2. Get Helios proper:
 +
 ----------------------------------------------------------------------
-git clone -b wip git://github.com/glondu/helios-server.git
+git clone https://github.com/glondu/helios-server.git
 cd helios-server
 ----------------------------------------------------------------------
 +
-Here, we are selecting the 'wip' branch, which contains fixes to make
-Helios work with standard Debian packages. There are some hard-coded
-values in 'settings.py'; you might want to change some of them... but
-there is no need for basic operations.
+This branch contains fixes to make Helios work with standard Debian
+packages. There are some hard-coded values in 'settings.py'; you might
+want to change some of them... but there is no need for basic
+operations.
 
 Running Helios
 --------------
