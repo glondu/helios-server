@@ -26,7 +26,8 @@ from helios_auth.jsonfield import JSONField
 from helios.datatypes.djangofield import LDObjectField
 
 import csv, copy
-  
+import unicodecsv
+
 class HeliosModel(models.Model, datatypes.LDObjectContainer):
   class Meta:
     abstract = True
@@ -653,7 +654,8 @@ class VoterFile(models.Model):
     else:
       voter_stream = open(self.voter_file.path, "rU")
 
-    reader = unicode_csv_reader(voter_stream)
+    #reader = unicode_csv_reader(voter_stream)
+    reader = unicodecsv.reader(voter_stream, encoding='utf-8')
 
     for voter_fields in reader:
       # bad line
@@ -678,11 +680,12 @@ class VoterFile(models.Model):
 
     # now we're looking straight at the content
     if self.voter_file_content:
-      voter_stream = StringIO.StringIO(self.voter_file_content)
+      voter_stream = StringIO.StringIO(self.voter_file_content.encode('utf-8'))
     else:
       voter_stream = open(self.voter_file.path, "rU")
 
-    reader = unicode_csv_reader(voter_stream)
+    # reader = unicode_csv_reader(voter_stream)
+    reader = unicodecsv.reader(voter_stream, encoding='utf-8')
     
     last_alias_num = election.last_alias_num
 
