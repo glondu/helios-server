@@ -2,10 +2,11 @@
 {% block title %}Confirm Vote{% endblock %}
 
 {% block content %}
-<h1>{{election.name}} &mdash; Vote Successfully Cast!</h1>
+<h1>{{election.name}} &mdash; Vote Cast!</h1>
 
 <p>
-    Congratulations, your vote has been <b><u>successfully cast</u></b>!
+    Congratulations, your vote has been cast! It will be verified shortly.
+    Go to the <a href="{% url helios.views.voters_list_pretty election.uuid %}">ballot list</a> to check if it has been validated!
 </p>
 
 <p>
