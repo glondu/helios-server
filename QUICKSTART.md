@@ -73,7 +73,7 @@ Setting up Helios
     virtual machine created above), run the following commands as
     `root`:
 
-        apt-get install git postgresql python-django python-openid python-psycopg2 python-django-south python-django-celery python-kombu
+        apt-get install git postgresql python-django python-openid python-psycopg2 python-django-south python-django-celery python-kombu python-unicodecsv
         su -c "createuser --superuser $HELIOS_USER" postgres
 
     where `$HELIOS_USER` is the (non-root) user that will run
