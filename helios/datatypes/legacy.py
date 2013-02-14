@@ -110,7 +110,7 @@ class Trustee(LegacyObject):
 
 class EGParams(LegacyObject):
     WRAPPED_OBJ_CLASS = crypto_elgamal.Cryptosystem
-    FIELDS = ['p', 'q', 'g']
+    FIELDS = ['p', 'q', 'g', 't', 'l']
     STRUCTURED_FIELDS = {
         'p': 'core/BigInteger',
         'q': 'core/BigInteger',

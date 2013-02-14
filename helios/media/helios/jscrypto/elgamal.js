@@ -31,6 +31,8 @@ ElGamal.Params.fromJSONObject = function(d) {
   params.p = BigInt.fromJSONObject(d.p);
   params.q = BigInt.fromJSONObject(d.q);
   params.g = BigInt.fromJSONObject(d.g);
+  params.t = d.t;
+  params.l = d.l;
   return params;
 };
 
