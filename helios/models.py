@@ -1094,6 +1094,14 @@ class Trustee(HeliosModel):
   threshold_step = models.IntegerField(default=0)
   coefficients = LDObjectField(type_hint = datatypes.arrayOf('heliosc/Coefficient'), null=True)
   acknowledgements = LDObjectField(type_hint = datatypes.arrayOf('heliosc/Signature'), null=True)
+
+  class Meta:
+    ordering = ["trustee_id", "id"]
+
+  def set_trustee_id(self, trustee_id):
+    if self.trustee_id != trustee_id:
+      self.trustee_id = trustee_id
+      self.save()
   
   def save(self, *args, **kwargs):
     """
@@ -1108,7 +1116,12 @@ class Trustee(HeliosModel):
   
   @classmethod
   def get_by_election(cls, election):
-    return cls.objects.filter(election = election)
+    trustees = cls.objects.filter(election = election)
+    # if needed, assign each trustee a unique trustee_id
+    # (for the threshold protocol)
+    for i in range(len(trustees)):
+      trustees[i].set_trustee_id(i+1)
+    return trustees
 
   @classmethod
   def get_by_uuid(cls, uuid):

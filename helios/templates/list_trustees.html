@@ -33,7 +33,7 @@
 
 {% else %}
 {% for t in trustees %}
-<h3> Trustee #{{forloop.counter}}: {{t.name}} 
+<h3> Trustee #{{t.trustee_id}}: {{t.name}}
 {% if admin_p %}
 {% if t.secret_key %}
 {% if not election.frozen_at %}[<a onclick="return confirm('Are you sure you want to remove Helios as a trustee?');" href="{% url helios.views.delete_trustee election.uuid %}?uuid={{t.uuid}}">x</a>]{% endif %}
