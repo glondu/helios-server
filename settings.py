@@ -154,6 +154,9 @@ HELIOS_PRIVATE_DEFAULT = False
 AUTH_ENABLED_AUTH_SYSTEMS = ['google']
 AUTH_DEFAULT_AUTH_SYSTEM = None
 
+# For testing purposes, you can omit asking for a password altogether
+# AUTH_ENABLED_AUTH_SYSTEMS = ['dummy']
+
 # facebook
 FACEBOOK_APP_ID = ''
 FACEBOOK_API_KEY = ''

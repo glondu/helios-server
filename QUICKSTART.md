@@ -111,6 +111,17 @@ Running Helios
     host at http://localhost:8000/.
 
 
+Authentication
+--------------
+
+By default, Helios uses a federated authentication system with a
+third-party server. This might be unpractical if your goal is to hack
+Helios, or just test it. For this, there exists a 'dummy'
+authentication module, that allows you to log in without password with
+any username, and with or without administrator rights. Look for
+`AUTH_ENABLED_AUTH_SYSTEMS` in 'settings.py'.
+
+
 Dealing with mails
 ------------------
 
