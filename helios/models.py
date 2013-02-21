@@ -1087,6 +1087,13 @@ class Trustee(HeliosModel):
 
   decryption_proofs = LDObjectField(type_hint = datatypes.arrayOf(datatypes.arrayOf('legacy/EGZKProof')),
                                     null=True)
+
+  # Added for Helios-C
+  certificate = LDObjectField(type_hint = 'heliosc/Certificate', null=True)
+  trustee_id = models.IntegerField(default=0)
+  threshold_step = models.IntegerField(default=0)
+  coefficients = LDObjectField(type_hint = datatypes.arrayOf('heliosc/Coefficient'), null=True)
+  acknowledgements = LDObjectField(type_hint = datatypes.arrayOf('heliosc/Signature'), null=True)
   
   def save(self, *args, **kwargs):
     """
@@ -1129,3 +1136,10 @@ class Trustee(HeliosModel):
     # verify_decryption_proofs(self, decryption_factors, decryption_proofs, public_key, challenge_generator):
     return self.election.encrypted_tally.verify_decryption_proofs(self.decryption_factors, self.decryption_proofs, self.public_key, algs.EG_fiatshamir_challenge_generator)
     
+# Added for Helios-C
+
+class SharedPoint(HeliosModel):
+  election = models.ForeignKey(Election)
+  sender = models.IntegerField()
+  recipient = models.IntegerField()
+  point = LDObjectField(type_hint = 'heliosc/Point')
