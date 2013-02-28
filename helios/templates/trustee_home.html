@@ -6,12 +6,45 @@
 <p>
 {% if trustee.public_key_hash %}
 You have successfully uploaded your public key.<br />
-Your public key fingerprint is: <b>{{trustee.public_key_hash}}</b>.<br />
-You can <a href="{% url helios.views.trustee_check_sk election.uuid, trustee.uuid %}">verify that you have the right secret key</a>.
+Your public key fingerprint is: <b>{{trustee.public_key_hash}}</b>.
 {% else %}
 <a href="{% url helios.views.trustee_keygenerator election.uuid, trustee.uuid %}">setup your key</a>
 {% endif %}
 </p>
+
+{% if trustee.threshold_step == 1 %}
+<p>
+Proceed to <a href="{% url helios.views.trustee_step1 election.uuid, trustee.uuid %}">step 1</a> of the key generation algorithm.
+</p>
+{% endif %}
+
+{% if trustee.coefficients %}
+<p>You have successfully completed step 1.</p>
+{% endif %}
+
+{% if trustee.threshold_step == 2 %}
+<p>
+Proceed to <a href="{% url helios.views.trustee_step2 election.uuid, trustee.uuid %}">step 2</a> of the key generation algorithm.
+</p>
+{% endif %}
+
+{% if trustee.acknowledgements %}
+<p>You have successfully completed step 2.</p>
+{% endif %}
+
+{% if trustee.threshold_step == 3 %}
+<p>
+Proceed to <a href="{% url helios.views.trustee_step3 election.uuid, trustee.uuid %}">step 3</a> of the key generation algorithm.
+</p>
+{% endif %}
+
+{% if trustee.public_key %}
+<p>You have successfully completed step 3.</p>
+{% endif %}
+
+{% if trustee.public_key_hash and trustee.threshold_step == 0 %}
+<p>Please come back here later when you are told so.</p>
+{% endif %}
 
 <p>
 {% if election.encrypted_tally %}

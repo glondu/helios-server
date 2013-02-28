@@ -369,7 +369,7 @@ class Election(HeliosModel):
     
     # gather the decryption factors
     trustees = Trustee.get_by_election(self)
-    decryption_factors = [t.decryption_factors for t in trustees]
+    decryption_factors = [(t.trustee_id, t.decryption_factors) for t in trustees]
     
     self.result = self.encrypted_tally.decrypt_from_factors(decryption_factors, self.public_key)
 
@@ -456,11 +456,11 @@ class Election(HeliosModel):
     
     # public key for trustees
     trustees = Trustee.get_by_election(self)
-    combined_pk = trustees[0].public_key
+    combined_pk = trustees[0].coefficients[0]["coefficient"]
     for t in trustees[1:]:
-      combined_pk = combined_pk * t.public_key
+      combined_pk = combined_pk * t.coefficients[0]["coefficient"]
       
-    self.public_key = combined_pk
+    self.public_key = trustees[0].public_key.clone_with_new_y(combined_pk)
     
     # log it
     self.append_log(ElectionLog.FROZEN)
@@ -1151,8 +1151,29 @@ class Trustee(HeliosModel):
     
 # Added for Helios-C
 
+def format_points(points):
+  result = []
+  for x in points:
+    y = x.point
+    y = datatypes.LDObject.fromDict(y, type_hint='heliosc/Point')
+    y = y.toJSONDict()
+    result.append(y)
+  return utils.to_json(result)
+
 class SharedPoint(HeliosModel):
   election = models.ForeignKey(Election)
   sender = models.IntegerField()
   recipient = models.IntegerField()
   point = LDObjectField(type_hint = 'heliosc/Point')
+
+  @classmethod
+  def format_points_sent_to(cls, election, trustee_id):
+    points = [x for x in cls.objects.filter(election=election, recipient=trustee_id)]
+    points.sort(key = (lambda x: x.sender))
+    return format_points(points)
+
+  @classmethod
+  def format_points_sent_by(cls, election, trustee_id):
+    points = [x for x in cls.objects.filter(election=election, sender=trustee_id)]
+    points.sort(key = (lambda x: x.recipient))
+    return format_points(points)

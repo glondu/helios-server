@@ -3,6 +3,8 @@
 {% block content %}
 <script language="javascript">
 
+var TRUSTEE, CERTIFICATES, POINTS;
+
 $(document).ready(function() {
     $('#result_div').hide();
     $('#waiting_div').hide();
@@ -11,9 +13,13 @@ $(document).ready(function() {
     $('#error_div').hide();
     
     BigInt.setup(function() {
+        PARAMS = ElGamal.Params.fromJSONObject({{params|safe}});
+        PARAMS.trustee_id = {{trustee.trustee_id}};
         ELECTION_JSON = {{election.toJSON|safe}};
         ELECTION_PK = ElGamal.PublicKey.fromJSONObject(ELECTION_JSON['public_key']);
         TALLY = HELIOS.Tally.fromJSONObject({{election.encrypted_tally.toJSON|safe}}, ELECTION_PK);   
+        CERTIFICATES = {{certificates|safe}};
+        POINTS = {{points|safe}};
         $('#sk_section').show();
     });
 });
@@ -54,7 +60,10 @@ function decrypt_and_prove_tally(tally, public_key, secret_key) {
 }
 
 function get_secret_key() {
-  return ElGamal.SecretKey.fromJSONObject($.secureEvalJSON($('#sk_textarea').val()));
+  TRUSTEE = heliosc.trustee(PARAMS, $('#sk_textarea').val());
+  // TODO: check key
+  var sk = heliosc.ui.share.get_direct();
+  return new ElGamal.SecretKey(sk.x, sk.public_key);
 }
 
 function do_tally() {

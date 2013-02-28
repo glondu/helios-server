@@ -197,6 +197,111 @@ def trustee_keygenerator(request, election, trustee):
 
   return render_template(request, "election_keygenerator", {'eg_params_json': eg_params_json, 'election': election, 'trustee': trustee})
 
+def format_certificates(trustees):
+  result = []
+  for x in trustees:
+    y = x.certificate
+    y = datatypes.LDObject.fromDict(y, type_hint='heliosc/Certificate')
+    y = y.toJSONDict()
+    result.append(y)
+  return utils.to_json(result)
+
+@trustee_check
+def trustee_step1(request, election, trustee):
+  """
+  Step 1 of DistKeyGen.
+  """
+  if request.method == "POST":
+    coefficients = utils.from_json(request.POST['coefficients'])
+    coefficients = [datatypes.LDObject.fromDict(x, type_hint="heliosc/Coefficient").wrapped_obj for x in coefficients]
+    points = utils.from_json(request.POST['points'])
+    points = [datatypes.LDObject.fromDict(x, type_hint="heliosc/Point").wrapped_obj for x in points]
+    # TODO: perform server-side checks here!
+    SharedPoint.objects.filter(election=election, sender=trustee.trustee_id).delete()
+    for i in range(len(points)):
+      obj = SharedPoint(election=election, sender=trustee.trustee_id, recipient=i+1, point=points[i])
+      obj.save()
+    trustee.coefficients = coefficients
+    trustee.threshold_step = 0
+    trustee.save()
+    return HttpResponseRedirect(reverse(trustee_home, args=[election.uuid, trustee.uuid]))
+
+  if trustee.coefficients:
+    # TODO: meaningful message
+    return HttpResponseRedirect(reverse(trustee_home, args=[election.uuid, trustee.uuid]))
+
+  params = utils.to_json(ELGAMAL_PARAMS_LD_OBJECT.toJSONDict())
+  certificates = format_certificates(Trustee.get_by_election(election))
+  return render_template(request, "trustee_step1", {'params': params, 'election': election, 'trustee': trustee, 'certificates': certificates})
+
+@trustee_check
+def trustee_step2(request, election, trustee):
+  """
+  Step 2 of DistKeyGen.
+  """
+  if request.method == "POST":
+    acks = utils.from_json(request.POST['acknowledgements'])
+    acks = [datatypes.LDObject.fromDict(x, type_hint="heliosc/Signature").wrapped_obj for x in acks]
+    # TODO: perform server-side checks here!
+    trustee.acknowledgements = acks
+    trustee.threshold_step = 0
+    trustee.save()
+    return HttpResponseRedirect(reverse(trustee_home, args=[election.uuid, trustee.uuid]))
+
+  if trustee.acknowledgements:
+    # TODO: meaningful message
+    return HttpResponseRedirect(reverse(trustee_home, args=[election.uuid, trustee.uuid]))
+
+  params = utils.to_json(ELGAMAL_PARAMS_LD_OBJECT.toJSONDict())
+  trustees = Trustee.get_by_election(election)
+  coefficients = []
+
+  for x in trustees:
+    y = x.coefficients
+    y = [datatypes.LDObject.fromDict(z, type_hint='heliosc/Coefficient').toJSONDict() for z in y]
+    coefficients.append(y)
+
+  coeffificents = utils.to_json(coefficients)
+  certificates = format_certificates(trustees)
+  points = SharedPoint.format_points_sent_to(election, trustee.trustee_id)
+
+  return render_template(request, "trustee_step2", {'params': params, 'election': election, 'trustee': trustee, 'certificates': certificates, 'coefficients': coefficients, 'points': points})
+
+@trustee_check
+def trustee_step3(request, election, trustee):
+  """
+  Step 3 of DistKeyGen.
+  """
+  if request.method == "POST":
+    pk = utils.from_json(request.POST['verification_key'])
+    pk = algs.EGPublicKey.fromJSONDict(pk)
+    # TODO: perform server-side checks here!
+    trustee.public_key = pk;
+    trustee.threshold_step = 0;
+    trustee.save()
+    return HttpResponseRedirect(reverse(trustee_home, args=[election.uuid, trustee.uuid]))
+
+  params = utils.to_json(ELGAMAL_PARAMS_LD_OBJECT.toJSONDict())
+  trustees = Trustee.get_by_election(election)
+  coefficients = []
+  acks = []
+
+  for x in trustees:
+    y = x.coefficients
+    y = [datatypes.LDObject.fromDict(z, type_hint='heliosc/Coefficient').toJSONDict() for z in y]
+    coefficients.append(y)
+    y = x.acknowledgements[trustee.trustee_id-1]
+    y = datatypes.LDObject.fromDict(y, type_hint='heliosc/Signature')
+    y = y.toJSONDict()
+    acks.append(y)
+
+  coeffificients = utils.to_json(coefficients)
+  certificates = format_certificates(trustees)
+  points = SharedPoint.format_points_sent_to(election, trustee.trustee_id)
+  points_sent = SharedPoint.format_points_sent_by(election, trustee.trustee_id)
+
+  return render_template(request, "trustee_step3", {'params': params, 'election': election, 'trustee': trustee, 'certificates': certificates, 'coefficients': coefficients, 'points': points, 'acks': acks, 'points_sent': points_sent})
+
 @login_required
 def elections_administered(request):
   if not can_create_election(request):
@@ -400,6 +505,26 @@ def list_trustees(request, election):
 @election_view()
 def list_trustees_view(request, election):
   trustees = Trustee.get_by_election(election)
+  if trustees and max([x.threshold_step for x in trustees]) == 0:
+    # all trustees are ready for the next step of DistKeyGen
+    if not trustees[0].certificate:
+      # generate individual keys
+      pass
+    elif not trustees[0].coefficients:
+      # step 1
+      for x in trustees:
+        x.threshold_step = 1
+        x.save()
+    elif not trustees[0].acknowledgements:
+      # step 2
+      for x in trustees:
+        x.threshold_step = 2
+        x.save()
+    elif not trustees[0].public_key:
+      # step 3
+      for x in trustees:
+        x.threshold_step = 3
+        x.save()
   user = get_user(request)
   admin_p = security.user_can_admin_election(user, election)
   
@@ -486,14 +611,9 @@ def trustee_upload_pk(request, election, trustee):
   if request.method == "POST":
     # get the public key and the hash, and add it
     public_key_and_proof = utils.from_json(request.POST['public_key_json'])
-    trustee.public_key = algs.EGPublicKey.fromJSONDict(public_key_and_proof['public_key'])
-    trustee.pok = algs.DLogProof.fromJSONDict(public_key_and_proof['pok'])
-    
-    # verify the pok
-    if not trustee.public_key.verify_sk_proof(trustee.pok, algs.DLog_challenge_generator):
-      raise Exception("bad pok for this public key")
-    
-    trustee.public_key_hash = utils.hash_b64(utils.to_json(trustee.public_key.toJSONDict()))
+    # TODO: validate certificate
+    trustee.certificate = datatypes.LDObject.fromDict(public_key_and_proof, type_hint='heliosc/Certificate').wrapped_obj
+    trustee.public_key_hash = utils.hash_b64(str(trustee.certificate["signature_key"]))
 
     trustee.save()
     
@@ -1007,7 +1127,12 @@ def trustee_decrypt_and_prove(request, election, trustee):
   if not _check_election_tally_type(election) or election.encrypted_tally == None:
     return HttpResponseRedirect(reverse(one_election_view,args=[election.uuid]))
     
-  return render_template(request, 'trustee_decrypt_and_prove', {'election': election, 'trustee': trustee})
+  trustees = Trustee.get_by_election(election)
+  certificates = format_certificates(trustees)
+  points = SharedPoint.format_points_sent_to(election, trustee.trustee_id)
+  params = utils.to_json(ELGAMAL_PARAMS_LD_OBJECT.toJSONDict())
+
+  return render_template(request, 'trustee_decrypt_and_prove', {'election': election, 'trustee': trustee, 'certificates': certificates, 'points': points, 'params': params})
   
 @election_view(frozen=True)
 def trustee_upload_decryption(request, election, trustee_uuid):

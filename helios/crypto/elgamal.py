@@ -15,6 +15,13 @@ import numtheory
 
 from algs import Utils
 
+def lagrange(indices, index, modulus):
+    result = 1L
+    for i in indices:
+        if i == index: continue
+        result = (result * i * Utils.inverse(i - index, modulus)) % modulus
+    return result
+
 class Cryptosystem(object):
     def __init__(self):
       self.p = None
@@ -143,6 +150,14 @@ class PublicKey:
       expected_challenge = challenge_generator(dlog_proof.commitment) % self.q
       
       return ((left_side == right_side) and (dlog_proof.challenge == expected_challenge))
+
+    def clone_with_new_y(self, y):
+      result = PublicKey()
+      result.p = self.p
+      result.q = self.q
+      result.g = self.g
+      result.y = y
+      return result
 
 
 class SecretKey:
@@ -436,11 +451,12 @@ class Ciphertext:
     def decrypt(self, decryption_factors, public_key):
       """
       decrypt a ciphertext given a list of decryption factors (from multiple trustees)
-      For now, no support for threshold
       """
       running_decryption = self.beta
-      for dec_factor in decryption_factors:
-        running_decryption = (running_decryption * Utils.inverse(dec_factor, public_key.p)) % public_key.p
+      indices = [f[0] for f in decryption_factors]
+      for dec_index, dec_factor in decryption_factors:
+        x = pow(dec_factor, lagrange(indices, dec_index, public_key.q), public_key.p)
+        running_decryption = (running_decryption * Utils.inverse(x, public_key.p)) % public_key.p
         
       return running_decryption
 

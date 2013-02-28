@@ -48,6 +48,13 @@
 <p>
 {% if t.public_key_hash %}
   Public Key Fingerprint: <tt style="font-size:1.5em;">{{t.public_key_hash}}</tt>
+<p>
+{% if t.threshold_step > 0 %}
+This trustee is ready for step {{t.threshold_step}} of the distributed key generation algorithm.
+{% elif not t.public_key %}
+This trustee is waiting...
+{% endif %}
+</p>
 {% else %}
 No public key uploaded yet.
 {% endif %}

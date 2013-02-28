@@ -455,8 +455,12 @@ class Tally(WorkflowObject):
 
       for a_num, a in enumerate(q):
         # coalesce the decryption factors into one list
-        dec_factor_list = [df[q_num][a_num] for df in decryption_factors]
-        raw_value = self.tally[q_num][a_num].decrypt(dec_factor_list, public_key)
+        dec_factor_list = [(di, df[q_num][a_num]) for di, df in decryption_factors]
+        raw_values = [self.tally[q_num][a_num].decrypt(filter((lambda x: x != i), dec_factor_list), public_key) for i in dec_factor_list]
+        raw_value = raw_values[0]
+        for x in raw_values:
+          if x != raw_value:
+            raise Exception("Not all decryptions agree!")
         
         q_result.append(dlog_table.lookup(raw_value))
 

@@ -2,8 +2,6 @@
 {% block content %}
 <script language="javascript">
 
-var PUBLIC_KEY, PROOF;
-
 function clear_keys() {
     $('#sk_download').hide();
     $('#pk_form').hide();
@@ -17,10 +15,12 @@ function show_key_reuse() {
     $('#reuse').show();
 }
 
-SECRET_KEY = null;
+var TRUSTEE, CERTIFICATE, SECRET_KEY;
+var ELGAMAL_PARAMS;
 
 function reuse_key(secret_key_text) {
-    SECRET_KEY = ElGamal.SecretKey.fromJSONObject(jQuery.secureEvalJSON(secret_key_text));
+    var secret_key = jQuery.secureEvalJSON(secret_key_text);
+    TRUSTEE = heliosc.trustee(ELGAMAL_PARAMS, secret_key.secret_key);
 
     $('#reuse').hide();
     setup_public_key_and_proof();
@@ -39,6 +39,7 @@ $(document).ready(function() {
        sjcl.random.addEntropy(result.randomness);
        BigInt.setup(function() {
           ELGAMAL_PARAMS = ElGamal.Params.fromJSONObject({{eg_params_json|safe}});
+          ELGAMAL_PARAMS.trustee_id = {{trustee.trustee_id}};
           $('#waiting_message').hide();
           $('#generator').show();
        });
@@ -48,24 +49,20 @@ $(document).ready(function() {
 
 function generate_keypair() {
     $('#buttons').hide();
-    
     try {
-        SECRET_KEY = ELGAMAL_PARAMS.generate();
+        TRUSTEE = heliosc.trustee(ELGAMAL_PARAMS);
+        setup_public_key_and_proof();
     } catch (e) {
         alert(e);
+        $('#buttons').show();
     }
-
-    setup_public_key_and_proof();
 }
 
 function setup_public_key_and_proof() {    
-    // generate PoK of secret key
-    PROOF = SECRET_KEY.proveKnowledge(ElGamal.fiatshamir_dlog_challenge_generator);
-    PUBLIC_KEY = SECRET_KEY.pk;
-
-    var pk_val = jQuery.toJSON({'pok': PROOF, 'public_key': PUBLIC_KEY});
-    $('#pk_textarea').val(pk_val);
-    $('#pk_hash').html(b64_sha256(jQuery.toJSON(PUBLIC_KEY)));
+    CERTIFICATE = TRUSTEE.generate_certificate();
+    SECRET_KEY = TRUSTEE.get_secret_key();
+    $('#pk_textarea').val(jQuery.toJSON(CERTIFICATE));
+    $('#pk_hash').html(b64_sha256(CERTIFICATE.signature_key));
 
     $('#clear_button').show();
     show_sk();
@@ -76,7 +73,7 @@ function show_sk() {
 }
 
 function download_sk() {
-    UTILS.open_window_with_content(jQuery.toJSON(SECRET_KEY), "application/json");
+    UTILS.open_window_with_content(SECRET_KEY, "text/plain");
 }
 
 function show_pk() {
@@ -100,9 +97,6 @@ function show_pk() {
 <p id="generator">
 
 <span id="buttons"><button onclick="generate_keypair(); return false;" id="generate_button">Generate Election Keys</button></span>
-
-<br /><br />
-If you've already generated a keypair, you can <a href="javascript:show_key_reuse()">reuse it</a>.
 </p>
 
 <div id="reuse">
