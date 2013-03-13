@@ -7,6 +7,7 @@ reworked 2011-01-09
 """
 
 import hashlib
+import time
 from helios.crypto import algs, utils
 import logging
 import uuid
@@ -204,6 +205,7 @@ class EncryptedVote(WorkflowObject):
     return expected_challenge == sig.challenge
 
   def verify(self, election):
+    t1 = 1000 * time.clock()
     # right number of answers
     if len(self.encrypted_answers) != len(election.questions):
       return False
@@ -229,7 +231,10 @@ class EncryptedVote(WorkflowObject):
       if not ea.verify(election.public_key, str(self.signature.commitment), min=min_answers, max=question['max']):
         return False
         
+    t2 = 1000 * time.clock()
     r = self.verify_signature(election)
+    t3 = 1000 * time.clock()
+    logger.debug("verify_signature done in {0}, out of {1} ms spent in verify".format(t3-t2, t3-t1))
     return r
     
   @classmethod

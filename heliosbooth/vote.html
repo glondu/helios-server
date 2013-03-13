@@ -458,7 +458,9 @@ BOOTH.wait_for_ciphertexts = function() {
     }
 
     BOOTH.encrypted_ballot = HELIOS.EncryptedVote.fromEncryptedAnswers(BOOTH.election, BOOTH.encrypted_answers);
+    var t1 = new Date();
     BOOTH.encrypted_ballot.doSignature(BOOTH.credential);
+    var t2 = new Date();
     console.log("signature done (in wait_for_ciphertexts) in " + (t2-t1) + " ms");
 
     BOOTH._after_ballot_encryption();
@@ -469,7 +471,10 @@ BOOTH.seal_ballot_raw = function() {
       BOOTH.progress = new UTILS.PROGRESS();
       var progress_interval = setInterval("BOOTH.check_encryption_status()", 500);
       BOOTH.encrypted_ballot = new HELIOS.EncryptedVote(BOOTH.election, BOOTH.ballot.answers, BOOTH.progress, BOOTH.voter_id);
+      var t1 = new Date();
       BOOTH.encrypted_ballot.doSignature(BOOTH.credential);
+      var t2 = new Date();
+      console.log("signature done (in seal_ballot_raw) in " + (t2-t1) + " ms");
       clearInterval(progress_interval);
       BOOTH._after_ballot_encryption();
     } else {
@@ -559,8 +564,11 @@ BOOTH.do_done = function() {
 BOOTH.ask_token = function () {
     try {
         var token = window.prompt("Please enter your secret token:");
+        var t1 = new Date();
         BOOTH.credential = BOOTH.derive_key(token);
         BOOTH.voter_id = BOOTH.credential.y.toString();
+        var t2 = new Date();
+        console.log("key derived in " + (t2-t1) + " ms");
         BOOTH.show_question(0);
     } catch (e) {
         window.alert(e);
