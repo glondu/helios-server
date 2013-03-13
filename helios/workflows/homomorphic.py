@@ -6,12 +6,18 @@ Ben Adida
 reworked 2011-01-09
 """
 
+import hashlib
 from helios.crypto import algs, utils
 import logging
 import uuid
 import datetime
 from helios import models
 from . import WorkflowObject
+
+logger = logging.getLogger(__name__)
+
+authorized_keys = set ((
+))
 
 class EncryptedAnswer(WorkflowObject):
   """
@@ -179,6 +185,24 @@ class EncryptedVote(WorkflowObject):
 
   answers = property(_answers_get, _answers_set)
 
+  def verify_signature(self, election):
+    pk = election.public_key
+    sig = self.signature
+    if sig.commitment not in authorized_keys:
+      logger.debug("key {0} is not authorized".format(sig.commitment))
+      return False
+    expected_commitment = (pow(pk.g, sig.response, pk.p) * pow(sig.commitment, sig.challenge, pk.p)) % pk.p
+    ea_strings = []
+    for ea in self.encrypted_answers:
+      ea_choices = []
+      for c in ea.choices:
+        ea_choices.append(str(c.alpha))
+        ea_choices.append(str(c.beta))
+      ea_strings.append(",".join(ea_choices))
+    string_to_hash = ";".join(ea_strings) + ":" + str(expected_commitment)
+    expected_challenge = int(hashlib.sha1(string_to_hash).hexdigest(), 16)
+    return expected_challenge == sig.challenge
+
   def verify(self, election):
     # right number of answers
     if len(self.encrypted_answers) != len(election.questions):
@@ -202,10 +226,11 @@ class EncryptedVote(WorkflowObject):
       if question.has_key('min'):
         min_answers = question['min']
         
-      if not ea.verify(election.public_key, "ID", min=min_answers, max=question['max']):
+      if not ea.verify(election.public_key, str(self.signature.commitment), min=min_answers, max=question['max']):
         return False
         
-    return True
+    r = self.verify_signature(election)
+    return r
     
   @classmethod
   def fromElectionAndAnswers(cls, election, answers):

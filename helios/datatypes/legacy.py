@@ -49,9 +49,10 @@ class EncryptedVote(LegacyObject):
     An encrypted ballot
     """
     WRAPPED_OBJ_CLASS = homomorphic.EncryptedVote
-    FIELDS = ['answers', 'election_hash', 'election_uuid']
+    FIELDS = ['answers', 'election_hash', 'election_uuid', 'signature']
     STRUCTURED_FIELDS = {
-        'answers' : arrayOf('legacy/EncryptedAnswer')
+        'answers' : arrayOf('legacy/EncryptedAnswer'),
+        'signature' : 'legacy/DLogProof'
         }
 
     def includeRandomness(self):
@@ -62,9 +63,10 @@ class EncryptedVoteWithRandomness(LegacyObject):
     An encrypted ballot with randomness for answers
     """
     WRAPPED_OBJ_CLASS = homomorphic.EncryptedVote
-    FIELDS = ['answers', 'election_hash', 'election_uuid']
+    FIELDS = ['answers', 'election_hash', 'election_uuid', 'signature']
     STRUCTURED_FIELDS = {
-        'answers' : arrayOf('legacy/EncryptedAnswerWithRandomness')
+        'answers' : arrayOf('legacy/EncryptedAnswerWithRandomness'),
+        'signature' : 'legacy/DLogProof'
         }
     
 
