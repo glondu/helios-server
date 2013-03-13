@@ -15,7 +15,7 @@ from mimetypes import guess_type
 
 import csv, urllib, os, base64
 
-from crypto import algs, electionalgs, elgamal
+from crypto import algs, elgamal
 from crypto import utils as cryptoutils
 from workflows import homomorphic
 from helios import utils as helios_utils
@@ -530,18 +530,6 @@ def encrypt_ballot(request, election):
   answers = utils.from_json(request.REQUEST['answers_json'])
   ev = homomorphic.EncryptedVote.fromElectionAndAnswers(election, answers)
   return ev.ld_object.includeRandomness().toJSONDict()
-    
-@election_view(frozen=True)
-def post_audited_ballot(request, election):
-  if request.method == "POST":
-    raw_vote = request.POST['audited_ballot']
-    encrypted_vote = electionalgs.EncryptedVote.fromJSONDict(utils.from_json(raw_vote))
-    vote_hash = encrypted_vote.get_hash()
-    audited_ballot = AuditedBallot(raw_vote = raw_vote, vote_hash = vote_hash, election = election)
-    audited_ballot.save()
-    
-    return SUCCESS
-    
 
 @election_view(frozen=True)
 def one_election_cast(request, election):

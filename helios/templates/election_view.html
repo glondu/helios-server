@@ -276,8 +276,7 @@ Anyone can vote in this election.
 {% endif %}
 
 <p style="font-size: 1.3em;">
-<a href="{% url helios.views.voters_list_pretty election.uuid %}">Ballot Tracking Center</a> &nbsp;| &nbsp;
-<a href="{% url helios.views.one_election_audited_ballots election.uuid %}">Audited Ballots</a>
+<a href="{% url helios.views.voters_list_pretty election.uuid %}">Ballot Tracking Center</a>
 </p>
 
 {% if not election.voting_has_started %}

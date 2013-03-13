@@ -66,9 +66,6 @@ urlpatterns = patterns('',
     (r'^/password_voter_login$', password_voter_login),
     (r'^/cast_done$', one_election_cast_done),
     
-    # post audited ballot
-    (r'^/post-audited-ballot', post_audited_ballot),
-    
     # managing voters
     (r'^/voters/$', voter_list),
     (r'^/voters/upload$', voters_upload),
