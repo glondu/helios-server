@@ -727,3 +727,13 @@ def DLog_challenge_generator(commitment):
   string_to_hash = str(commitment)
   return int(hashlib.sha1(string_to_hash).hexdigest(),16)
 
+def EG_disjunctive_challenge_generator_with_id(voter_id):
+  def f(commitments, voter_id=voter_id):
+    array_to_hash = []
+    for commitment in commitments:
+      array_to_hash.append(str(commitment['A']))
+      array_to_hash.append(str(commitment['B']))
+
+    string_to_hash = ",".join(array_to_hash)
+    return int(hashlib.sha1("prove|" + voter_id + "|" + string_to_hash).hexdigest(),16)
+  return f

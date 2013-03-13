@@ -58,7 +58,7 @@ class EncryptedAnswer(WorkflowObject):
     
     return False
     
-  def verify(self, pk, min=0, max=1):
+  def verify(self, pk, voter_id, min=0, max=1):
     possible_plaintexts = self.generate_plaintexts(pk)
     homomorphic_sum = 0
       
@@ -68,7 +68,7 @@ class EncryptedAnswer(WorkflowObject):
       individual_proof = self.individual_proofs[choice_num]
       
       # verify the proof on the encryption of that choice
-      if not choice.verify_disjunctive_encryption_proof(possible_plaintexts, individual_proof, algs.EG_disjunctive_challenge_generator):
+      if not choice.verify_disjunctive_encryption_proof(possible_plaintexts, individual_proof, algs.EG_disjunctive_challenge_generator_with_id(voter_id)):
         return False
 
       # compute homomorphic sum if needed
@@ -80,7 +80,7 @@ class EncryptedAnswer(WorkflowObject):
       sum_possible_plaintexts = self.generate_plaintexts(pk, min=min, max=max)
 
       # verify the sum
-      return homomorphic_sum.verify_disjunctive_encryption_proof(sum_possible_plaintexts, self.overall_proof, algs.EG_disjunctive_challenge_generator)
+      return homomorphic_sum.verify_disjunctive_encryption_proof(sum_possible_plaintexts, self.overall_proof, algs.EG_disjunctive_challenge_generator_with_id(voter_id))
     else:
       # approval voting, no need for overall proof verification
       return True
@@ -133,7 +133,7 @@ class EncryptedAnswer(WorkflowObject):
       
       # generate proof
       individual_proofs[answer_num] = choices[answer_num].generate_disjunctive_encryption_proof(plaintexts, plaintext_index, 
-                                                randomness[answer_num], algs.EG_disjunctive_challenge_generator)
+                                                randomness[answer_num], algs.EG_disjunctive_challenge_generator_with_id("FIXME"))
                                                 
       # sum things up homomorphically if needed
       if max_answers != None:
@@ -150,7 +150,7 @@ class EncryptedAnswer(WorkflowObject):
       sum_plaintexts = cls.generate_plaintexts(pk, min=min_answers, max=max_answers)
     
       # need to subtract the min from the offset
-      overall_proof = homomorphic_sum.generate_disjunctive_encryption_proof(sum_plaintexts, num_selected_answers - min_answers, randomness_sum, algs.EG_disjunctive_challenge_generator);
+      overall_proof = homomorphic_sum.generate_disjunctive_encryption_proof(sum_plaintexts, num_selected_answers - min_answers, randomness_sum, algs.EG_disjunctive_challenge_generator_with_id("FIXME"));
     else:
       # approval voting
       overall_proof = None
@@ -202,7 +202,7 @@ class EncryptedVote(WorkflowObject):
       if question.has_key('min'):
         min_answers = question['min']
         
-      if not ea.verify(election.public_key, min=min_answers, max=question['max']):
+      if not ea.verify(election.public_key, "ID", min=min_answers, max=question['max']):
         return False
         
     return True
