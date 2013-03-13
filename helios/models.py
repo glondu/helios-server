@@ -13,7 +13,7 @@ from django.core.mail import send_mail
 
 import datetime, logging, uuid, random, StringIO
 
-from crypto import electionalgs, algs, utils
+from crypto import algs, utils
 from helios import utils as heliosutils
 import helios.views
 
