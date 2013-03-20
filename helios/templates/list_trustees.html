@@ -22,11 +22,6 @@
 <p>
     [ <a onclick="return(confirm('Adding your own trustee requires a good bit more work to tally the election.\nYou will need to have trustees generate keypairs and safeguard their secret key.\n\nIf you are not sure what that means, we strongly recommend\nclicking Cancel and letting Helios tally the election for you.'));" href="{% url helios.views.new_trustee election.uuid %}">add a trustee</a> ]
 </p>
-{% if not election.has_helios_trustee %}
-<p>
-    <a href="{% url helios.views.new_trustee_helios election.uuid %}">add Helios as a trustee</a>
-</p>
-{% endif %}
 {% endif %}
 
 {% if not trustees|length %}
